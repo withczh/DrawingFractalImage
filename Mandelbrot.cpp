@@ -23,7 +23,7 @@ int Mandelbrot::getIterations(double x,double y)
         }
         Iteration++;
     }
-    return 0;
+    return Iteration;
 }
 
 
