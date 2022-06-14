@@ -1,4 +1,5 @@
 #include "FractalCreator.h"
+#include<iostream>
 
 namespace czh
 {
@@ -15,6 +16,7 @@ void FractalCreator::run(std::string fileName)
 {
     calculateIteration();
     calculateTotalIteration();
+    calculateRangeTotals();
     drawFractal();
     writeBitmap(fileName);
 }
@@ -46,6 +48,51 @@ void FractalCreator::calculateTotalIteration()
         m_total+=m_histogram[i];
     }
 }
+void FractalCreator::calculateRangeTotals()
+{
+	int rangeIndex = 0;
+
+	for(int i=0; i<Mandelbrot::MAX_ITERATION; i++) 
+    {
+		int pixels = m_histogram[i];
+
+		if(i >= m_ranges[rangeIndex+1]) {
+			rangeIndex++;
+		}
+
+		m_rangeTotals[rangeIndex] += pixels;
+	}
+
+}
+void FractalCreator::addRange(double rangEnd,const RGB& rgb)
+{
+    m_ranges.push_back(rangEnd*Mandelbrot::MAX_ITERATION);
+    m_colors.push_back(rgb);
+
+    if(m_bGetFirstRange)
+    {
+        m_rangeTotals.push_back(0);
+    }
+    m_bGetFirstRange=true;
+}
+
+int FractalCreator::getRange(int iterations) const
+{
+    
+    int range=0;
+    for(int i=1;i<m_ranges.size();i++)
+    {
+        range=i;
+        if(m_ranges[i]>iterations) break;
+
+    }
+    range--;
+
+    assert(range>-1);
+    assert(range<m_ranges.size());
+    return range;
+
+}
 
 void FractalCreator::addZoom(const Zoom& zoom)
 {
@@ -54,6 +101,7 @@ void FractalCreator::addZoom(const Zoom& zoom)
 
 void FractalCreator::drawFractal()
 {
+    
     for(int y=0;y<m_height;y++)
     {
         for(int x=0;x<m_width;x++)
@@ -61,17 +109,30 @@ void FractalCreator::drawFractal()
             uint8_t red=0;
             uint8_t green=0;
             uint8_t blue=0;
-            int iteration=m_fractal[y*m_width+x];
+            int iteration=m_fractal[y*m_width+x];        
+            int range=getRange(iteration);
+            int rangeTotal=m_rangeTotals[range];
+            int rangeStart=m_ranges[range];
+
+            RGB& startColor=m_colors[range];
+            RGB& endColor=m_colors[range+1];
+            RGB colorDiff=endColor-startColor;
+
+
             if(iteration!=Mandelbrot::MAX_ITERATION)
             {
-                double hue=0.0;
-                for(int i=0;i<=iteration;i++)
+                int  totalPixels=0;
+                for(int i=rangeStart;i<=iteration;i++)
                 {
-                    hue+=((double)m_histogram[i])/m_total;
+                    totalPixels+=m_histogram[i];
                 } 
-                red=pow(255,hue);   
-            }
+                // red=pow(255,hue);   
+                red=startColor.r+colorDiff.r*(double)totalPixels/rangeTotal;
+                green=startColor.g+colorDiff.g*(double)totalPixels/rangeTotal;
+                blue=startColor.b+colorDiff.b*(double)totalPixels/rangeTotal;
 
+            }
+            // std::cout<<"red:"<<red<<",green:"<<green<<",blue:"<<blue<<std::endl;
             m_bitmap.setPixel(x,y,red,green,blue);
         }
     }

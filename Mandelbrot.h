@@ -8,7 +8,7 @@ namespace czh
     {
 
     public:
-        static const int MAX_ITERATION=500; 
+        static const int MAX_ITERATION=1000; 
 
     public:
         Mandelbrot();
