@@ -4,18 +4,18 @@
 namespace czh
 {
 
-class Mandelbrot
-{
+    class Mandelbrot
+    {
 
-public:
-    static const int MAX_ITERATION=1000; 
+    public:
+        static const int MAX_ITERATION=500; 
 
-public:
-    Mandelbrot();
-    virtual ~Mandelbrot();
-    static int getIterations(double x,double y);
+    public:
+        Mandelbrot();
+        virtual ~Mandelbrot();
+        static int getIterations(double x,double y);
 
-};
+    };
 
 } // namespace czh
 
